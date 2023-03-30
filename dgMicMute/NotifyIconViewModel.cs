@@ -16,8 +16,8 @@ namespace dgMicMute
 {
     public class NotifyIconViewModel : INotifyPropertyChanged
     {
-        RegistryKey registryKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\microphone", true);
-
+        private static RegistryKey registryKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\microphone", true);
+        private static RegistryKey registryKeyNonPackaged = registryKey.OpenSubKey("NonPackaged", true);
         private string _iconPath;
         private DgMic _mic;
         private readonly System.Media.SoundPlayer _offSoundPlayer = new System.Media.SoundPlayer(Resources.off);
@@ -28,7 +28,15 @@ namespace dgMicMute
             get
             {
                 RegistryKey registryKeyNonPackaged = registryKey.OpenSubKey("NonPackaged", true);
-                bool value;
+                bool value = false;
+                if (registryKey.GetValue("Value") == null)
+                {
+                    registryKey.SetValue("Value", "Allow");
+                }
+                if (registryKeyNonPackaged.GetValue("Value") == null)
+                {
+                    registryKeyNonPackaged.SetValue("Value", "Allow");
+                }
                 if (registryKey.GetValue("Value").ToString() == "Deny" || registryKeyNonPackaged.GetValue("Value").ToString() == "Deny")
                 {
                     value = true;
@@ -37,16 +45,19 @@ namespace dgMicMute
                 {
                     value = false;
                 }
-                //IconPath = Settings.IsBlockMicPrivacy ? @"res\microphone_muted.ico" : @"res\microphone_unmuted.ico";
-                //if (Settings.IsMuted == true)
-                //{
-                //    IconPath = Settings.IsMuted ? @"res\microphone_muted.ico" : @"res\microphone_unmuted.ico";
-                //}
                 return value;
             }
             set
             {
-                RegistryKey registryKeyNonPackaged = registryKey.OpenSubKey("NonPackaged", true);
+
+                if (registryKey.GetValue("Value") == null)
+                {
+                    registryKey.SetValue("Value", "Allow");
+                }
+                if (registryKeyNonPackaged.GetValue("Value") == null)
+                {
+                    registryKeyNonPackaged.SetValue("Value", "Allow");
+                }
                 if (value == false)
                 {
                     registryKey.SetValue("Value", "Allow");
@@ -59,11 +70,6 @@ namespace dgMicMute
                     registryKeyNonPackaged.SetValue("Value", "Deny");
                     Settings.IsBlockMicPrivacy = true;
                 }
-                //IconPath = Settings.IsBlockMicPrivacy ? @"res\microphone_muted.ico" : @"res\microphone_unmuted.ico";
-                //if (Settings.IsMuted == true)
-                //{
-                //    IconPath = Settings.IsMuted ? @"res\microphone_muted.ico" : @"res\microphone_unmuted.ico";
-                //}
                 SerializeStatic.Save(typeof(Settings));
                 OnPropertyChanged("IsBlockMicPrivacy");
             }
@@ -76,7 +82,7 @@ namespace dgMicMute
                 IconPath = Settings.IsMuted ? @"res\microphone_muted.ico" : @"res\microphone_unmuted.ico";
                 if (Settings.IsBlockMicPrivacy == true)
                 {
-                    IconPath = Settings.IsBlockMicPrivacy ? @"res\microphone_muted.ico" : @"res\microphone_unmuted.ico";
+                    IconPath = @"res\microphone_muted.ico";
                 }
                 _mic.SetMicStateTo(Settings.IsMuted ? DgMicStates.Muted : DgMicStates.Unmuted);
                 return Settings.IsMuted;
@@ -91,7 +97,7 @@ namespace dgMicMute
                 IconPath = Settings.IsMuted ? @"res\microphone_muted.ico" : @"res\microphone_unmuted.ico";
                 if (Settings.IsBlockMicPrivacy == true)
                 {
-                    IconPath = Settings.IsBlockMicPrivacy ? @"res\microphone_muted.ico" : @"res\microphone_unmuted.ico";
+                    IconPath = @"res\microphone_muted.ico";
                 }
                 _mic.SetMicStateTo(Settings.IsMuted ? DgMicStates.Muted : DgMicStates.Unmuted);
                 SerializeStatic.Save(typeof(Settings));
@@ -144,11 +150,12 @@ namespace dgMicMute
         }
 
         public void RefreshMicList(object sender, EventArgs e)
-		{
+        {
             _mic.Dispose();
             _mic = new DgMic();
             _mic.OnVolumeNotification += _mic_OnVolumeNotification;
             IsMuted = Settings.IsMuted; // reassert the muted state on the new set of mics
+            IsBlockMicPrivacy = Settings.IsBlockMicPrivacy;
             TimerStart();
         }
 
@@ -158,11 +165,11 @@ namespace dgMicMute
         }
 
         public void HotkeyPressed(object sender, KeyPressedEventArgs e)
-		{
+        {
             ToggleMicrophone(null);
-		}
+        }
 
-		private void OpenSettingsWindow(object obj)
+        private void OpenSettingsWindow(object obj)
         {
             SettingsWindow settingsWindow = new SettingsWindow();
             settingsWindow.Show();
@@ -187,7 +194,7 @@ namespace dgMicMute
                 //Therefore, we need to invoke a new thread via the dispatcher,
                 //because we cannot simply get information from the interface while
                 //we are handling the callback.
-                Application.Current.Dispatcher.BeginInvoke((Action) (() =>
+                Application.Current.Dispatcher.BeginInvoke((Action)(() =>
                 {
                     IsMuted = IsMuted;
                 }));
@@ -221,9 +228,7 @@ namespace dgMicMute
         {
             bool status = IsBlockMicPrivacy;
             OnPropertyChanged("IsBlockMicPrivacy");
-
             IconPath = status ? @"res\microphone_muted.ico" : @"res\microphone_unmuted.ico";
-
             if (Settings.IsMuted == true)
             {
                 IconPath = Settings.IsMuted ? @"res\microphone_muted.ico" : @"res\microphone_unmuted.ico";
