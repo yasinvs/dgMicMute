@@ -231,7 +231,7 @@ namespace dgMicMute
             IconPath = status ? @"res\microphone_muted.ico" : @"res\microphone_unmuted.ico";
             if (Settings.IsMuted == true)
             {
-                IconPath = Settings.IsMuted ? @"res\microphone_muted.ico" : @"res\microphone_unmuted.ico";
+                IconPath = @"res\microphone_muted.ico";
             }
         }
 
