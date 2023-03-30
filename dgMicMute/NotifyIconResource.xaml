@@ -10,11 +10,13 @@
   -->
     <ContextMenu x:Shared="false" x:Key="SysTrayMenu">
         <MenuItem Header="Mute" IsCheckable="True" IsChecked="{Binding IsMuted}" />
-        <MenuItem Header="Keep State" IsCheckable="True" IsChecked="{Binding IsForced}" />
+        <MenuItem IsEnabled="False" Header="Keep State" IsCheckable="True" IsChecked="{Binding IsForced}" />
+        <MenuItem Header="Block Microphone Privacy" IsCheckable="True" IsChecked="{Binding IsBlockMicPrivacy}" />
         <Separator />
-        <MenuItem Header="Settings..." IsEnabled="True" Command="{Binding OpenSettingsWindowCommand}"/>
+        <MenuItem Header="Settings..." IsEnabled="False" Command="{Binding OpenSettingsWindowCommand}"/>
         <Separator />
-        <MenuItem Header="Fork on Github" IsEnabled="True" Command="{Binding ForkOnGitHubCommand}"/>
+        <MenuItem Header="Fork on Github" IsEnabled="False" Command="{Binding ForkOnGitHubCommand}"/>
+        <MenuItem Header="Edited by yS" IsEnabled="False" Command="{Binding ForkOnGitHubCommand}"/>
         <Separator />
         <MenuItem Header="Exit" Command="{Binding ExitApplicationCommand}" />
     </ContextMenu>

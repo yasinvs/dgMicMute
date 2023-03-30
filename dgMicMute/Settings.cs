@@ -23,6 +23,7 @@ namespace dgMicMute
         /// Ugly hack.
         /// </summary>
         public static bool _startWithWindows;
+        public static bool _isBlockMicPrivacy;
         public static bool _isMuted;
         public static bool _isForced;
         public static bool _usesHotkey;
@@ -56,6 +57,18 @@ namespace dgMicMute
             set
             {
                 _isMuted = value;
+            }
+        }
+
+        public static bool IsBlockMicPrivacy
+        {
+            get
+            {
+                return _isBlockMicPrivacy;
+            }
+            set
+            {
+                _isBlockMicPrivacy = value;
             }
         }
 
