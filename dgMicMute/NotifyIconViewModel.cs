@@ -6,10 +6,13 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using dgMicMute.Implementations;
 using dgMicMute.MvvmHelper;
 using dgMicMute.Properties;
+using Hardcodet.Wpf.TaskbarNotification;
 using Microsoft.Win32;
 
 namespace dgMicMute
