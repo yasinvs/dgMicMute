@@ -21,17 +21,16 @@ namespace dgMicMute
     {
         private static RegistryKey registryKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\microphone", true);
         private static RegistryKey registryKeyNonPackaged = registryKey.OpenSubKey("NonPackaged", true);
-        private string _iconPath;
         private DgMic _mic;
         private readonly System.Media.SoundPlayer _offSoundPlayer = new System.Media.SoundPlayer(Resources.off);
         private readonly System.Media.SoundPlayer _onSoundPlayer = new System.Media.SoundPlayer(Resources.on);
+        private string _iconPath;
 
         public bool IsBlockMicPrivacy
         {
             get
             {
                 RegistryKey registryKeyNonPackaged = registryKey.OpenSubKey("NonPackaged", true);
-                bool value = false;
                 if (registryKey.GetValue("Value") == null)
                 {
                     registryKey.SetValue("Value", "Allow");
@@ -40,19 +39,19 @@ namespace dgMicMute
                 {
                     registryKeyNonPackaged.SetValue("Value", "Allow");
                 }
+                bool registryValueStatus;
                 if (registryKey.GetValue("Value").ToString() == "Deny" || registryKeyNonPackaged.GetValue("Value").ToString() == "Deny")
                 {
-                    value = true;
+                    registryValueStatus = true;
                 }
                 else
                 {
-                    value = false;
+                    registryValueStatus = false;
                 }
-                return value;
+                return registryValueStatus;
             }
             set
             {
-
                 if (registryKey.GetValue("Value") == null)
                 {
                     registryKey.SetValue("Value", "Allow");
@@ -67,12 +66,12 @@ namespace dgMicMute
                     registryKeyNonPackaged.SetValue("Value", "Allow");
                     Settings.IsBlockMicPrivacy = false;
                 }
-                else
-                {
-                    registryKey.SetValue("Value", "Deny");
-                    registryKeyNonPackaged.SetValue("Value", "Deny");
-                    Settings.IsBlockMicPrivacy = true;
-                }
+                //else
+                //{
+                //    registryKey.SetValue("Value", "Deny");
+                //    registryKeyNonPackaged.SetValue("Value", "Deny");
+                //    Settings.IsBlockMicPrivacy = true;
+                //}
                 SerializeStatic.Save(typeof(Settings));
                 OnPropertyChanged("IsBlockMicPrivacy");
             }
@@ -82,27 +81,51 @@ namespace dgMicMute
         {
             get
             {
-                IconPath = Settings.IsMuted ? @"res\microphone_muted.ico" : @"res\microphone_unmuted.ico";
-                if (Settings.IsBlockMicPrivacy == true)
+                if (IsBlockMicPrivacy == true)
                 {
                     IconPath = @"res\microphone_muted.ico";
                 }
-                _mic.SetMicStateTo(Settings.IsMuted ? DgMicStates.Muted : DgMicStates.Unmuted);
+                else
+                {
+                    IconPath = Settings.IsMuted ? @"res\microphone_muted.ico" : @"res\microphone_unmuted.ico";
+                }
+                //_mic.SetMicStateTo(Settings.IsMuted ? DgMicStates.Muted : DgMicStates.Unmuted);
+
+                bool micMuteStatus = _mic.AreAnyMicsMuted();
+                if (micMuteStatus == true)
+                {
+                    Settings.IsMuted = true;
+                }
+                else
+                {
+                    Settings.IsMuted = false;
+                }
+
                 return Settings.IsMuted;
             }
             set
             {
-                if (Settings.PlaysSound && Settings.IsMuted != value)
-                {
-                    PlaySound(value);
-                }
-                Settings.IsMuted = value;
-                IconPath = Settings.IsMuted ? @"res\microphone_muted.ico" : @"res\microphone_unmuted.ico";
-                if (Settings.IsBlockMicPrivacy == true)
+                if (IsBlockMicPrivacy == true)
                 {
                     IconPath = @"res\microphone_muted.ico";
                 }
-                _mic.SetMicStateTo(Settings.IsMuted ? DgMicStates.Muted : DgMicStates.Unmuted);
+                else
+                {
+                    IconPath = Settings.IsMuted ? @"res\microphone_muted.ico" : @"res\microphone_unmuted.ico";
+                }
+                bool micMuteStatus = _mic.AreAnyMicsMuted();
+                if (micMuteStatus == true)
+                {
+                    if (Settings.PlaysSound && Settings.IsMuted != value)
+                    {
+                        PlaySound(value);
+                    }
+                    Settings.IsMuted = false;
+                    _mic.SetMicStateTo(Settings.IsMuted ? DgMicStates.Muted : DgMicStates.Unmuted);
+                }
+
+                //Settings.IsMuted = value;
+                //_mic.SetMicStateTo(Settings.IsMuted ? DgMicStates.Muted : DgMicStates.Unmuted);
                 SerializeStatic.Save(typeof(Settings));
                 OnPropertyChanged("IsMuted");
             }
@@ -138,6 +161,8 @@ namespace dgMicMute
         public ICommand ExitApplicationCommand { get; set; }
         public ICommand ForkOnGitHubCommand { get; set; }
         public ICommand OpenSettingsWindowCommand { get; set; }
+        public ICommand OpenWindowsSoundSettingsCommand { get; set; }
+        public ICommand OpenWindowsPrivacySettingsCommand { get; set; }
         public ICommand ToggleMicrophoneCommand { get; set; }
 
         public NotifyIconViewModel()
@@ -148,6 +173,8 @@ namespace dgMicMute
             ExitApplicationCommand = new RelayCommand(ExitApplication);
             ForkOnGitHubCommand = new RelayCommand(ForkOnGithub);
             OpenSettingsWindowCommand = new RelayCommand(OpenSettingsWindow);
+            OpenWindowsSoundSettingsCommand = new RelayCommand(OpenWindowsSoundSettings);
+            OpenWindowsPrivacySettingsCommand = new RelayCommand(OpenWindowsPrivacySettings);
             ToggleMicrophoneCommand = new RelayCommand(ToggleMicrophone);
             TimerStart();
         }
@@ -164,7 +191,15 @@ namespace dgMicMute
 
         private void ToggleMicrophone(object obj)
         {
-            IsMuted = !Settings.IsMuted; // changed this to Settings.IsMuted instead of this.IsMuted to skip the unneeded side effect calls of that getter
+            if (IsMuted == true)
+            {
+                IsMuted = false;
+            }
+            //IsMuted = !Settings.IsMuted; // changed this to Settings.IsMuted instead of this.IsMuted to skip the unneeded side effect calls of that getter
+            if (IsBlockMicPrivacy == true)
+            {
+                IsBlockMicPrivacy = false;
+            }
         }
 
         public void HotkeyPressed(object sender, KeyPressedEventArgs e)
@@ -176,6 +211,16 @@ namespace dgMicMute
         {
             SettingsWindow settingsWindow = new SettingsWindow();
             settingsWindow.Show();
+        }
+
+        private void OpenWindowsSoundSettings(object obj)
+        {
+            Process.Start("C:\\Windows\\System32\\mmsys.cpl", "sounds");
+        }
+
+        private void OpenWindowsPrivacySettings(object obj)
+        {
+            Process.Start("C:\\Windows\\explorer.exe", "ms-settings:privacy-microphone");
         }
 
         private void ForkOnGithub(object obj)
@@ -231,10 +276,16 @@ namespace dgMicMute
         {
             bool status = IsBlockMicPrivacy;
             OnPropertyChanged("IsBlockMicPrivacy");
-            IconPath = status ? @"res\microphone_muted.ico" : @"res\microphone_unmuted.ico";
-            if (Settings.IsMuted == true)
+            if (status == true) 
             {
                 IconPath = @"res\microphone_muted.ico";
+            }
+            else
+            {
+                if (IsMuted == true)
+                {
+                    IconPath = @"res\microphone_muted.ico";
+                }
             }
         }
 

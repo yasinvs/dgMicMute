@@ -15,6 +15,9 @@
         <Separator />
         <MenuItem Header="Settings..." IsEnabled="False" Command="{Binding OpenSettingsWindowCommand}"/>
         <Separator />
+        <MenuItem Header="Windows Sound Settings" IsEnabled="True" Command="{Binding OpenWindowsSoundSettingsCommand}"/>
+        <MenuItem Header="Windows Microphone Privacy Settings" IsEnabled="True" Command="{Binding OpenWindowsPrivacySettingsCommand}"/>
+        <Separator />
         <MenuItem Header="Fork on Github" IsEnabled="False" Command="{Binding ForkOnGitHubCommand}"/>
         <MenuItem Header="Edited by yS" IsEnabled="False" Command="{Binding ForkOnGitHubCommand}"/>
         <Separator />

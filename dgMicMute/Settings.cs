@@ -218,9 +218,17 @@ namespace dgMicMute
         {
             try
             {
-                if (String.IsNullOrWhiteSpace(path))
-                    path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"dgMicMute\",
-                        "settings.xml");
+                if (!File.Exists(System.Windows.Forms.Application.StartupPath + "\\portable.dat"))
+                {
+                    if (String.IsNullOrWhiteSpace(path))
+                        path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"dgMicMute\",
+                            "settings.xml");
+                }
+                else
+                {
+                    if (String.IsNullOrWhiteSpace(path))
+                        path = System.Windows.Forms.Application.StartupPath + "\\settings.xml";
+                }
 
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
 
@@ -249,9 +257,17 @@ namespace dgMicMute
         {
             try
             {
-                if (String.IsNullOrWhiteSpace(path))
-                    path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"dgMicMute\",
-                        "settings.xml");
+                if (!File.Exists(System.Windows.Forms.Application.StartupPath + "\\portable.dat"))
+                {
+                    if (String.IsNullOrWhiteSpace(path))
+                        path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"dgMicMute\",
+                            "settings.xml");
+                }
+                else
+                {
+                    if (String.IsNullOrWhiteSpace(path))
+                        path = System.Windows.Forms.Application.StartupPath + "\\settings.xml";
+                }
 
                 if (!File.Exists(path)) return false;
 

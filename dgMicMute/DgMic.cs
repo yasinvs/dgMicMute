@@ -62,7 +62,15 @@ namespace dgMicMute
                       select p).Any());
         }
 
-		private bool disposedValue;
+        public bool AreAnyMicsMuted()
+        {
+            return (from p
+                      in _devices
+                      where p.AudioEndpointVolume.Mute == true
+                      select p).Any();
+        }
+
+        private bool disposedValue;
 
 		protected virtual void Dispose(bool disposing)
 		{
